@@ -1,0 +1,79 @@
+# ==========================
+# Python & Jupyter
+# ==========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.env
+.venv/
+*.egg-info/
+.DS_Store
+
+# ==========================
+# Data Files
+# ==========================
+data/*.csv
+data/*.json
+data/*.xlsx
+data/*.pkl
+data/*.zip
+data/*.parquet
+
+# ==========================
+# API Keys / Credentials
+# ==========================
+*.env
+config.json
+secret_key.txt
+credentials.json
+
+# ==========================
+# System / OS
+# ==========================
+Thumbs.db
+ehthumbs.db
+*.swp
+*.swo
+*.bak
+
+# ==========================
+# Logs & Outputs
+# ==========================
+logs/
+*.log
+*.out
+*.tmp
+
+# ==========================
+# Virtual Environments
+# ==========================
+venv/
+env/
+ENV/
+.venv/
+venv.bak/
+
+# ==========================
+# IDEs / Editors
+# ==========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==========================
+# Generated Reports / Exports
+# ==========================
+reports/*.pdf
+reports/*.docx
+reports/*.pptx
+reports/*.html
+reports/*.tex
+
+# ==========================
+# Cache / Temp folders
+# ==========================
+cache/
+tmp/
