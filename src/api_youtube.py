@@ -12,9 +12,9 @@ if env_path.exists():
 API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
 if not API_KEY:
-    raise ValueError("❌ YouTube API key not found. Add it to your .env or GitHub Secrets.")
+    raise ValueError(" YouTube API key not found. Add it to your .env or GitHub Secrets.")
 else:
-    print("✅ API key loaded successfully.")
+    print(" API key loaded successfully.")
 
 # === Output file ===
 SAVE_PATH = "/content/drive/MyDrive/youtube-popularity-prediction/data/youtube_api_3000.csv"
@@ -42,7 +42,7 @@ def get_trending_videos(region="US", max_results=300):
         data = response.json()
 
         if response.status_code != 200:
-            print(f"❌ API error {response.status_code} for region {region}: {data}")
+            print(f"API error {response.status_code} for region {region}: {data}")
             break
 
         for item in data.get("items", []):
@@ -80,11 +80,11 @@ def get_trending_videos(region="US", max_results=300):
 if __name__ == "__main__":
     all_videos = []
     for region in REGIONS:
-        print(f"🌎 Collecting for region: {region}")
+        print(f" Collecting for region: {region}")
         region_videos = get_trending_videos(region, max_results=300)
         all_videos.extend(region_videos)
-        print(f"✅ Collected {len(region_videos)} from {region}. Total so far: {len(all_videos)}")
+        print(f" Collected {len(region_videos)} from {region}. Total so far: {len(all_videos)}")
 
     df = pd.DataFrame(all_videos)
     df.to_csv(SAVE_PATH, index=False)
-    print(f"\n💾 Saved {len(df)} total videos to {SAVE_PATH}")
+    print(f"\n Saved {len(df)} total videos to {SAVE_PATH}")
