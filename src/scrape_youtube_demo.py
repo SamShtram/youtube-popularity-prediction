@@ -27,7 +27,7 @@ def scrape_youtube_demo(output_path="../data/youtube_scraped_demo.csv"):
 
     response = requests.get(BASE_URL, headers=headers)
     if response.status_code != 200:
-        print(f"⚠️ Request failed with status code {response.status_code}")
+        print(f" Request failed with status code {response.status_code}")
         return
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -43,10 +43,10 @@ def scrape_youtube_demo(output_path="../data/youtube_scraped_demo.csv"):
 
             # Stop conditions
             if len(videos) >= MAX_SAMPLES:
-                print(f"⚡ Max sample limit reached ({MAX_SAMPLES}) — stopping early.")
+                print(f" Max sample limit reached ({MAX_SAMPLES}) — stopping early.")
                 break
             if time.time() - START_TIME > MAX_RUNTIME:
-                print(f"⏱️ Max runtime reached ({MAX_RUNTIME}s) — stopping early.")
+                print(f" Max runtime reached ({MAX_RUNTIME}s) — stopping early.")
                 break
 
             time.sleep(random.uniform(0.05, 0.2))  # simulate request delay
@@ -57,8 +57,8 @@ def scrape_youtube_demo(output_path="../data/youtube_scraped_demo.csv"):
     df.to_csv(output_path, index=False)
 
     elapsed = round(time.time() - START_TIME, 2)
-    print(f"✅ DEMO SCRAPER completed in {elapsed}s — collected {len(df)} videos.")
-    print(f"💾 Saved demo data to → {output_path}")
+    print(f" DEMO SCRAPER completed in {elapsed}s — collected {len(df)} videos.")
+    print(f" Saved demo data to → {output_path}")
 
 if __name__ == "__main__":
     scrape_youtube_demo()
