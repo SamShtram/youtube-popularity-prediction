@@ -8,7 +8,9 @@ import pandas as pd
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 
-# === Setup ===
+# -------------------------------
+# Configuration
+# -------------------------------
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -25,13 +27,17 @@ KEYWORDS = [
     "live performance", "cooking recipe", "product review"
 ]
 
-SAVE_PATH = "../data/youtube_scraped_raw.csv"
+# Save to /data/youtube_scraped_raw.csv (relative to project root)
+SAVE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_scraped_raw.csv")
 MAX_VIDEOS = 3000
 
-os.makedirs(os.path.join("..", "data"), exist_ok=True)
+# Ensure /data directory exists
+os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)
 
 
-# === Extract video data ===
+# -------------------------------
+# Helper: Extract videos from HTML
+# -------------------------------
 def extract_videos_from_html(html):
     soup = BeautifulSoup(html, "html.parser")
     scripts = soup.find_all("script")
@@ -39,7 +45,7 @@ def extract_videos_from_html(html):
     json_data = None
     for script in scripts:
         if "ytInitialData" in script.text:
-            match = re.search(r"ytInitialData\s*=\s*(\{.*?\});", script.text, re.S)
+            match = re.search(r"ytInitialData\s*=\s*(\{.*\})\s*;", script.text, re.DOTALL)
             if match:
                 try:
                     json_data = json.loads(match.group(1))
@@ -48,7 +54,7 @@ def extract_videos_from_html(html):
                     continue
 
     if not json_data:
-        print("No ytInitialData found.")
+        print("No ytInitialData found in page.")
         return []
 
     videos = []
@@ -76,37 +82,55 @@ def extract_videos_from_html(html):
                 })
 
     except Exception as e:
-        print("Error traversing JSON:", e)
+        print("Error parsing YouTube data:", e)
 
-    print(f"Extracted {len(videos)} videos from this keyword.")
     return videos
 
 
-# === Main scraper ===
+# -------------------------------
+# Main Scraper Function
+# -------------------------------
 def scrape_youtube_data():
     all_videos = []
-    for keyword in tqdm(KEYWORDS, desc="Scraping YouTube search results"):
-        search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
-        try:
-            response = requests.get(search_url, headers=HEADERS, timeout=10)
-            response.encoding = "utf-8"
-        except Exception as e:
-            print(f"Request failed for {keyword}: {e}")
-            continue
+    print("Starting YouTube scraping process...")
 
-        videos = extract_videos_from_html(response.text)
-        all_videos.extend(videos)
+    for keyword in tqdm(KEYWORDS, desc="Scraping YouTube search results"):
+        attempt = 1
+        while attempt <= 2:
+            search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
+            try:
+                response = requests.get(search_url, headers=HEADERS, timeout=10)
+                response.encoding = "utf-8"
+            except Exception as e:
+                print(f"Request failed for keyword '{keyword}': {e}")
+                break
+
+            videos = extract_videos_from_html(response.text)
+            print(f"{keyword}: {len(videos)} videos found (attempt {attempt})")
+
+            if len(videos) >= 10 or attempt == 2:
+                all_videos.extend(videos)
+                break
+
+            attempt += 1
+            time.sleep(random.uniform(3, 6))
 
         if len(all_videos) >= MAX_VIDEOS:
             break
 
         time.sleep(random.uniform(2, 4))
 
+    # Save to CSV
     df = pd.DataFrame(all_videos)
     df.drop_duplicates(subset="url", inplace=True)
     df.to_csv(SAVE_PATH, index=False, encoding="utf-8")
+
+    print(f"\nScraping completed.")
     print(f"Saved {len(df)} videos to {SAVE_PATH}")
 
 
+# -------------------------------
+# Run script
+# -------------------------------
 if __name__ == "__main__":
     scrape_youtube_data()
