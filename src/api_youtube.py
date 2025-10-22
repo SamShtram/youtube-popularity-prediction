@@ -20,9 +20,9 @@ if env_path.exists():
 API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
 if not API_KEY:
-    raise ValueError("❌ YouTube API key not found. Add it to your .env or GitHub Secrets.")
+    raise ValueError(" YouTube API key not found. Add it to your .env or GitHub Secrets.")
 else:
-    print("✅ API key loaded successfully.\n")
+    print(" API key loaded successfully.\n")
 
 # === Output file ===
 DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
@@ -52,7 +52,7 @@ def get_trending_videos(region="US", max_results=300):
         data = response.json()
 
         if response.status_code != 200:
-            print(f"❌ API error {response.status_code} for region {region}: {data}")
+            print(f" API error {response.status_code} for region {region}: {data}")
             break
 
         for item in data.get("items", []):
@@ -91,11 +91,11 @@ if __name__ == "__main__":
     print("🎥 Collecting YouTube trending data via API...\n")
     all_videos = []
 
-    for region in tqdm(REGIONS, desc="🌎 Fetching by region"):
+    for region in tqdm(REGIONS, desc=" Fetching by region"):
         region_videos = get_trending_videos(region, max_results=300)
         all_videos.extend(region_videos)
-        print(f"✅ {region}: Collected {len(region_videos)} videos (Total: {len(all_videos)})")
+        print(f" {region}: Collected {len(region_videos)} videos (Total: {len(all_videos)})")
 
     df = pd.DataFrame(all_videos)
     df.to_csv(SAVE_PATH, index=False, encoding="utf-8-sig")
-    print(f"\n💾 Saved {len(df)} total videos → {SAVE_PATH}")
+    print(f"\n Saved {len(df)} total videos → {SAVE_PATH}")
