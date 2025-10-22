@@ -1,10 +1,20 @@
 import os
-import requests, json, re, time, random, pandas as pd
+import re
+import json
+import time
+import random
+import requests
+import pandas as pd
+from tqdm import tqdm
+from bs4 import BeautifulSoup
 
+# === Setup ===
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/123.0 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0 Safari/537.36"
+    )
 }
 
 KEYWORDS = [
@@ -15,31 +25,48 @@ KEYWORDS = [
     "live performance", "cooking recipe", "product review"
 ]
 
-# Ensure data folder exists
-os.makedirs("data", exist_ok=True)
-SAVE_PATH = os.path.join("data", "youtube_scraped_raw.csv")
+SAVE_PATH = "../data/youtube_scraped_raw.csv"
 MAX_VIDEOS = 3000
 
+os.makedirs(os.path.join("..", "data"), exist_ok=True)
 
-def extract_videos_from_json(html):
-    """Extract JSON data from the ytInitialData object."""
-    match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
-    if not match:
+
+# === Extract video data ===
+def extract_videos_from_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+    scripts = soup.find_all("script")
+
+    json_data = None
+    for script in scripts:
+        if "ytInitialData" in script.text:
+            match = re.search(r"ytInitialData\s*=\s*(\{.*?\});", script.text, re.S)
+            if match:
+                try:
+                    json_data = json.loads(match.group(1))
+                    break
+                except Exception:
+                    continue
+
+    if not json_data:
+        print("No ytInitialData found.")
         return []
+
+    videos = []
     try:
-        data = json.loads(match.group(1))
-        videos = []
-        contents = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
-        for section in contents:
-            for item in section.get("itemSectionRenderer", {}).get("contents", []):
+        sections = json_data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
+        for section in sections:
+            contents = section.get("itemSectionRenderer", {}).get("contents", [])
+            for item in contents:
                 video = item.get("videoRenderer")
                 if not video:
                     continue
+
                 vid = video.get("videoId")
-                title = video["title"]["runs"][0]["text"]
-                channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text")
+                title = video.get("title", {}).get("runs", [{}])[0].get("text", "")
+                channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text", "")
                 views = video.get("viewCountText", {}).get("simpleText", "N/A")
                 duration = video.get("lengthText", {}).get("simpleText", "N/A")
+
                 videos.append({
                     "url": f"https://www.youtube.com/watch?v={vid}",
                     "title": title,
@@ -47,27 +74,29 @@ def extract_videos_from_json(html):
                     "views": views,
                     "duration": duration
                 })
+
     except Exception as e:
-        print("Error parsing JSON:", e)
-        videos = []
+        print("Error traversing JSON:", e)
+
+    print(f"Extracted {len(videos)} videos from this keyword.")
     return videos
 
 
+# === Main scraper ===
 def scrape_youtube_data():
     all_videos = []
-    print("Starting YouTube scrape...")
-
-    for keyword in KEYWORDS:
-        print(f"  Searching for: {keyword}")
+    for keyword in tqdm(KEYWORDS, desc="Scraping YouTube search results"):
         search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
-        resp = requests.get(search_url, headers=HEADERS)
-        resp.encoding = "utf-8"
-        videos = extract_videos_from_json(resp.text)
+        try:
+            response = requests.get(search_url, headers=HEADERS, timeout=10)
+            response.encoding = "utf-8"
+        except Exception as e:
+            print(f"Request failed for {keyword}: {e}")
+            continue
 
-        for video in videos:
-            all_videos.append(video)
-            if len(all_videos) >= MAX_VIDEOS:
-                break
+        videos = extract_videos_from_html(response.text)
+        all_videos.extend(videos)
+
         if len(all_videos) >= MAX_VIDEOS:
             break
 
