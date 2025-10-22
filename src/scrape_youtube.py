@@ -5,7 +5,6 @@ import re
 import time
 import random
 import pandas as pd
-from tqdm import tqdm
 
 # === Configuration ===
 HEADERS = {
@@ -22,16 +21,14 @@ KEYWORDS = [
     "live performance", "cooking recipe", "product review"
 ]
 
-# Create data directory if missing
+# === Output configuration ===
 os.makedirs("data", exist_ok=True)
-
-# === Save path for consistency with test_data_collection.py ===
 SAVE_PATH = os.path.join("data", "youtube_scraped_raw.csv")
 MAX_VIDEOS = 3000
 
 
 def extract_videos_from_json(html):
-    """Extract video metadata from YouTube search page JSON."""
+    """Extract video metadata from YouTube search JSON."""
     match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
     if not match:
         return []
@@ -52,11 +49,11 @@ def extract_videos_from_json(html):
                 video = item.get("videoRenderer")
                 if not video:
                     continue
+
                 vid = video.get("videoId")
                 title = video.get("title", {}).get("runs", [{}])[0].get("text")
                 channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text")
                 views = video.get("viewCountText", {}).get("simpleText", "N/A")
-                likes = video.get("viewCountText", {}).get("simpleText", "N/A")
                 duration = video.get("lengthText", {}).get("simpleText", "N/A")
 
                 videos.append({
@@ -64,7 +61,6 @@ def extract_videos_from_json(html):
                     "title": title,
                     "channel": channel,
                     "views": views,
-                    "likes": likes,
                     "duration": duration
                 })
         return videos
@@ -75,14 +71,16 @@ def extract_videos_from_json(html):
 
 
 def scrape_youtube_data():
-    """Main scraper loop."""
-    print("\nRunning YouTube scraper...")
+    """Main scraper loop (no tqdm version)."""
+    print("\nStarting YouTube scraping process...\n")
     all_videos = []
 
-    for keyword in tqdm(KEYWORDS, desc="Collecting search results"):
+    for i, keyword in enumerate(KEYWORDS, start=1):
+        print(f"[{i}/{len(KEYWORDS)}] Searching for: {keyword}")
         search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
         resp = requests.get(search_url, headers=HEADERS)
         videos = extract_videos_from_json(resp.text)
+        print(f"   Found {len(videos)} videos for '{keyword}'.")
 
         for video in videos:
             all_videos.append(video)
@@ -90,13 +88,13 @@ def scrape_youtube_data():
                 break
         if len(all_videos) >= MAX_VIDEOS:
             break
-        time.sleep(random.uniform(2, 4))  # polite delay
+        time.sleep(random.uniform(2, 4))  # avoid rate limits
 
     df = pd.DataFrame(all_videos)
     df.drop_duplicates(subset="url", inplace=True)
     df.to_csv(SAVE_PATH, index=False, encoding="utf-8")
 
-    print(f"Saved {len(df)} videos to {SAVE_PATH}")
+    print(f"\nScraping complete! {len(df)} videos saved to {SAVE_PATH}")
 
 
 if __name__ == "__main__":
