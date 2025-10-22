@@ -21,14 +21,17 @@ def convert_duration(duration_str):
     seconds = int(s.group(1)) if s else 0
     return round(minutes + seconds / 60, 2)
 
-# === Helper 2: Convert upload date ===
+# === Helper 2: Safe datetime conversion ===
 def to_datetime_safe(val):
     try:
-        return pd.to_datetime(val, errors="coerce", utc=True)
+        dt = pd.to_datetime(val, errors="coerce", utc=True)
+        if dt is not pd.NaT:
+            return dt
     except Exception:
-        return pd.NaT
+        pass
+    return pd.NaT
 
-# === Helper 3: Keyword density in text ===
+# === Helper 3: Keyword density ===
 def keyword_density(text):
     if not isinstance(text, str):
         return 0
@@ -38,23 +41,31 @@ def keyword_density(text):
 for name, df in [("Scraped", df_scraped), ("API", df_api)]:
     print(f"Processing {name} dataset...")
 
+    # Duration conversion
     if "duration" in df.columns:
         df["duration_mins"] = df["duration"].apply(convert_duration)
 
+    # Upload date and days since upload
     if "upload_date" in df.columns:
         df["upload_date"] = df["upload_date"].apply(to_datetime_safe)
-        now = pd.Timestamp.now(tz="UTC")
-        df["days_since_upload"] = (pd.Timestamp.now(tz=None) - df["upload_date"]).dt.days
 
+        # Normalize to timezone-naive consistently (for arithmetic)
+        df["upload_date"] = df["upload_date"].dt.tz_localize(None)
+
+        # Always compare naive vs. naive timestamps
+        now = pd.Timestamp.now(tz=None)
+        df["days_since_upload"] = (now - df["upload_date"]).dt.days
+
+    # Engagement rate
     if all(col in df.columns for col in ["likes", "comments", "views"]):
         df["engagement_rate"] = (
             (pd.to_numeric(df["likes"], errors="coerce") + pd.to_numeric(df["comments"], errors="coerce"))
             / pd.to_numeric(df["views"], errors="coerce")
         ).replace([np.inf, -np.inf, np.nan], 0)
 
+    # Keyword counts
     if "title" in df.columns:
         df["title_keyword_count"] = df["title"].apply(keyword_density)
-
     if "description" in df.columns:
         df["desc_keyword_count"] = df["description"].apply(keyword_density)
 
