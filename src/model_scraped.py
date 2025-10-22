@@ -38,6 +38,9 @@ def clean_views(value):
         df["views"] = df["views"].apply(clean_views)
         print("\n🔍 Sample of cleaned 'views' column:")
         print(df["views"].head(10).tolist())
+    print("\n🔍 Raw sample from 'views' column before cleaning:")
+    print(df["views"].head(10).tolist())
+
 
 
 
