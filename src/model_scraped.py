@@ -21,23 +21,21 @@ print(f"✅ Loaded scraped dataset: {df.shape[0]} rows, {df.shape[1]} columns")
 # 2️⃣ Clean and convert
 # ----------------------------------------------------------
 def clean_views(value):
-    """Clean any possible Unicode/comma variations in view counts."""
+    """Convert YouTube-style view strings (e.g. '1.2M', '45K', '12,304') to integers."""
     if pd.isna(value):
         return np.nan
-    s = str(value)
+    s = str(value).strip().replace(',', '').replace(' ', '').lower()
 
-    # Normalize and remove invisible Unicode spaces (U+00A0, U+202F, etc.)
-    s = unicodedata.normalize("NFKD", s)
-    s = s.replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
-
-    # Remove commas, periods, and text artifacts
-    s = re.sub(r"[^\d]", "", s)
-
-    # Handle cases where Excel exported '1,204,058' as 'ï»¿1204058'
-    s = s.encode("ascii", "ignore").decode()
-
-    # Convert to int if digits exist
-    return int(s) if s.isdigit() else np.nan
+    # Handle millions and thousands
+    if 'm' in s:
+        num = re.findall(r"[\d\.]+", s)
+        return float(num[0]) * 1_000_000 if num else np.nan
+    elif 'k' in s:
+        num = re.findall(r"[\d\.]+", s)
+        return float(num[0]) * 1_000 if num else np.nan
+    else:
+        digits = re.findall(r"\d+", s)
+        return float(digits[0]) if digits else np.nan
 
 
 def convert_duration(dur):
