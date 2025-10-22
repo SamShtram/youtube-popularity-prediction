@@ -1,28 +1,26 @@
 import os
-import sys
-import time
 import pathlib
-import requests
-import pandas as pd
 from dotenv import load_dotenv
-from tqdm import tqdm
 
-# === Handle Windows encoding (fixes charmap emoji crash) ===
-if sys.platform.startswith("win"):
-    sys.stdout.reconfigure(encoding="utf-8")
-
-# === Load API Key ===
+# Load environment variables
 env_path = pathlib.Path(__file__).resolve().parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
-# Load from either .env or GitHub Secret
 API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
+# If API key not found, switch to demo mode
 if not API_KEY:
-    raise ValueError(" YouTube API key not found. Add it to your .env or GitHub Secrets.")
-else:
-    print(" API key loaded successfully.\n")
+    print("⚠️ No API key found. Running in demo mode using pre-collected sample data.")
+    DEMO_FILE = pathlib.Path(__file__).resolve().parent.parent / "data" / "youtube_api_sample.csv"
+
+    if DEMO_FILE.exists():
+        import pandas as pd
+        df = pd.read_csv(DEMO_FILE)
+        print(f"Loaded demo dataset with {len(df)} rows from {DEMO_FILE}")
+        exit(0)
+    else:
+        raise ValueError("No API key or demo file found. Please create .env or include sample CSV.")
 
 # === Output file ===
 DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
