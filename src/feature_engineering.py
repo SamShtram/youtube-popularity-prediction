@@ -43,6 +43,7 @@ for name, df in [("Scraped", df_scraped), ("API", df_api)]:
 
     if "upload_date" in df.columns:
         df["upload_date"] = df["upload_date"].apply(to_datetime_safe)
+        now = pd.Timestamp.now(tz="UTC")
         df["days_since_upload"] = (pd.Timestamp.now(tz=None) - df["upload_date"]).dt.days
 
     if all(col in df.columns for col in ["likes", "comments", "views"]):
