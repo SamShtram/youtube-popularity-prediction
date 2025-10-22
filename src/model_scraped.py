@@ -21,28 +21,46 @@ print(f"✅ Loaded scraped dataset: {df.shape[0]} rows, {df.shape[1]} columns")
 # 2️⃣ Clean and convert
 # ----------------------------------------------------------
 def clean_views(value):
+    """Clean any possible Unicode/comma variations in view counts."""
     if pd.isna(value):
         return np.nan
     s = str(value)
+
+    # Normalize and remove invisible Unicode spaces (U+00A0, U+202F, etc.)
     s = unicodedata.normalize("NFKD", s)
+    s = s.replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
+
+    # Remove commas, periods, and text artifacts
     s = re.sub(r"[^\d]", "", s)
+
+    # Handle cases where Excel exported '1,204,058' as 'ï»¿1204058'
+    s = s.encode("ascii", "ignore").decode()
+
+    # Convert to int if digits exist
     return int(s) if s.isdigit() else np.nan
 
+
 def convert_duration(dur):
+    """Convert MM:SS duration format to minutes (float)."""
     if not isinstance(dur, str):
         return np.nan
+    dur = dur.strip()
     m = re.match(r"(\d+):(\d+)", dur)
     if not m:
         return np.nan
     minutes, seconds = int(m.group(1)), int(m.group(2))
     return round(minutes + seconds / 60, 2)
 
+
+# Apply cleaning
 df["views"] = df["views"].apply(clean_views)
 df["duration_mins"] = df["duration"].apply(convert_duration)
 
+# --- Quick sanity check ---
 print("\n🔍 After cleaning:")
 print(df[["views", "duration_mins"]].head(10))
 print("✅ Views dtype:", df["views"].dtype)
+print("✅ Unique nonzero views count:", (df['views'] > 0).sum())
 
 # ----------------------------------------------------------
 # 3️⃣ Drop NA and prep
