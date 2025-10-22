@@ -61,6 +61,7 @@ def scrape_youtube_data():
         print(f"  Searching for: {keyword}")
         search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
         resp = requests.get(search_url, headers=HEADERS)
+        resp.encoding = "utf-8"
         videos = extract_videos_from_json(resp.text)
 
         for video in videos:
