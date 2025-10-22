@@ -36,7 +36,7 @@ if __name__ == "__main__":
     os.makedirs("data", exist_ok=True)
 
     # Run both data collection scripts
-    run_script("scrape_youtube.py")
+    run_script("scrape_youtube_demo.py")
     run_script("api_youtube.py")
 
     # Validate the outputs
