@@ -1,12 +1,6 @@
 import os
-import requests
-import json
-import re
-import time
-import random
-import pandas as pd
+import requests, json, re, time, random, pandas as pd
 
-# === Configuration ===
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                   "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -21,41 +15,31 @@ KEYWORDS = [
     "live performance", "cooking recipe", "product review"
 ]
 
-# === Output configuration ===
+# Ensure data folder exists
 os.makedirs("data", exist_ok=True)
 SAVE_PATH = os.path.join("data", "youtube_scraped_raw.csv")
 MAX_VIDEOS = 3000
 
 
 def extract_videos_from_json(html):
-    """Extract video metadata from YouTube search JSON."""
+    """Extract JSON data from the ytInitialData object."""
     match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
     if not match:
         return []
-
     try:
         data = json.loads(match.group(1))
         videos = []
-        contents = (
-            data.get("contents", {})
-                .get("twoColumnSearchResultsRenderer", {})
-                .get("primaryContents", {})
-                .get("sectionListRenderer", {})
-                .get("contents", [])
-        )
-
+        contents = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
         for section in contents:
             for item in section.get("itemSectionRenderer", {}).get("contents", []):
                 video = item.get("videoRenderer")
                 if not video:
                     continue
-
                 vid = video.get("videoId")
-                title = video.get("title", {}).get("runs", [{}])[0].get("text")
+                title = video["title"]["runs"][0]["text"]
                 channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text")
                 views = video.get("viewCountText", {}).get("simpleText", "N/A")
                 duration = video.get("lengthText", {}).get("simpleText", "N/A")
-
                 videos.append({
                     "url": f"https://www.youtube.com/watch?v={vid}",
                     "title": title,
@@ -63,24 +47,21 @@ def extract_videos_from_json(html):
                     "views": views,
                     "duration": duration
                 })
-        return videos
-
     except Exception as e:
         print("Error parsing JSON:", e)
-        return []
+        videos = []
+    return videos
 
 
 def scrape_youtube_data():
-    """Main scraper loop (no tqdm version)."""
-    print("\nStarting YouTube scraping process...\n")
     all_videos = []
+    print("Starting YouTube scrape...")
 
-    for i, keyword in enumerate(KEYWORDS, start=1):
-        print(f"[{i}/{len(KEYWORDS)}] Searching for: {keyword}")
+    for keyword in KEYWORDS:
+        print(f"  Searching for: {keyword}")
         search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
         resp = requests.get(search_url, headers=HEADERS)
         videos = extract_videos_from_json(resp.text)
-        print(f"   Found {len(videos)} videos for '{keyword}'.")
 
         for video in videos:
             all_videos.append(video)
@@ -88,13 +69,13 @@ def scrape_youtube_data():
                 break
         if len(all_videos) >= MAX_VIDEOS:
             break
-        time.sleep(random.uniform(2, 4))  # avoid rate limits
+
+        time.sleep(random.uniform(2, 4))
 
     df = pd.DataFrame(all_videos)
     df.drop_duplicates(subset="url", inplace=True)
     df.to_csv(SAVE_PATH, index=False, encoding="utf-8")
-
-    print(f"\nScraping complete! {len(df)} videos saved to {SAVE_PATH}")
+    print(f"Saved {len(df)} videos to {SAVE_PATH}")
 
 
 if __name__ == "__main__":
