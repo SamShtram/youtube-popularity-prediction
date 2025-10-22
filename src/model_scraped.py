@@ -22,16 +22,26 @@ print(f"✅ Loaded scraped dataset: {df.shape[0]} rows, {df.shape[1]} columns")
 # 2️⃣ Convert columns to numeric where possible
 # ----------------------------------------------------------
 def clean_views(value):
-    """Convert view strings like '1,234,567' or '1 234 567' to integer safely."""
+    """Convert view strings like '1,234,567' or '1 234 567' safely to int."""
     if pd.isna(value):
         return np.nan
-    # Normalize spaces and commas, remove all non-digit characters
-    value = str(value).replace("\u202f", "").replace("\xa0", "").replace(",", "").strip()
+    value = str(value)
+    # Replace all known separators and invisible spaces
+    for ch in [",", " ", "\u202f", "\xa0", "\u00a0"]:
+        value = value.replace(ch, "")
     # Keep only digits
     value = re.sub(r"[^0-9]", "", value)
-    if value == "":
+    if not value.isdigit():
         return np.nan
     return int(value)
+    if "views" in df.columns:
+        df["views"] = df["views"].apply(clean_views)
+        print("\n🔍 Sample of cleaned 'views' column:")
+        print(df["views"].head(10).tolist())
+
+
+
+
 
 def duration_to_minutes(value):
     """Convert duration '3:59' or '1:02:45' to minutes."""
