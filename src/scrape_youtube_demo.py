@@ -24,24 +24,49 @@ MAX_VIDEOS = 3000
 
 
 def extract_videos_from_json(html):
-    """Extract JSON data from the ytInitialData object."""
-    match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
+    """Extract video metadata from YouTube search HTML."""
+    import json, re
+
+    match = re.search(r"var ytInitialData\s*=\s*(\{.*?\});</script>", html, re.S)
     if not match:
+        match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
+    if not match:
+        print("No ytInitialData found.")
         return []
-    data = json.loads(match.group(1))
+
+    try:
+        json_text = match.group(1)
+        data = json.loads(json_text)
+    except Exception as e:
+        print(f"JSON parsing error: {e}")
+        return []
+
     videos = []
     try:
-        contents = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
-        for section in contents:
-            for item in section.get("itemSectionRenderer", {}).get("contents", []):
+        sections = (
+            data.get("contents", {})
+                .get("twoColumnSearchResultsRenderer", {})
+                .get("primaryContents", {})
+                .get("sectionListRenderer", {})
+                .get("contents", [])
+        )
+
+        for section in sections:
+            contents = section.get("itemSectionRenderer", {}).get("contents", [])
+            for item in contents:
                 video = item.get("videoRenderer")
                 if not video:
                     continue
+
                 vid = video.get("videoId")
-                title = video["title"]["runs"][0]["text"]
-                channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text")
+                if not vid:
+                    continue
+
+                title = video.get("title", {}).get("runs", [{}])[0].get("text", "")
+                channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text", "")
                 views = video.get("viewCountText", {}).get("simpleText", "N/A")
                 duration = video.get("lengthText", {}).get("simpleText", "N/A")
+
                 videos.append({
                     "url": f"https://www.youtube.com/watch?v={vid}",
                     "title": title,
@@ -50,7 +75,9 @@ def extract_videos_from_json(html):
                     "duration": duration
                 })
     except Exception as e:
-        print(" Error parsing JSON:", e)
+        print(f"JSON traversal error: {e}")
+
+    print(f"Extracted {len(videos)} videos from page.")
     return videos
 
 
