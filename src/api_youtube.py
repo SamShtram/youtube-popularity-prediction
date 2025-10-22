@@ -1,18 +1,20 @@
-import os
-import requests
-import pandas as pd
-from dotenv import load_dotenv
-import pathlib
-from tqdm import tqdm
-import time
-
 # === Load API Key ===
-env_path = pathlib.Path("/content/drive/MyDrive/youtube-popularity-prediction/.env")
-load_dotenv(dotenv_path=env_path)
-API_KEY = os.getenv("api_key")
+import os
+import pathlib
+from dotenv import load_dotenv
+
+# Look for .env in project root
+env_path = pathlib.Path(__file__).resolve().parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+
+# Load from .env or GitHub Secrets
+API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
 if not API_KEY:
-    raise ValueError("❌ API key not found. Check .env formatting.")
+    raise ValueError("❌ YouTube API key not found. Add it to your .env or GitHub Secrets.")
+else:
+    print("✅ API key loaded successfully.")
 
 # === Output file ===
 SAVE_PATH = "/content/drive/MyDrive/youtube-popularity-prediction/data/youtube_api_3000.csv"
