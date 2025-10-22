@@ -1,40 +1,36 @@
 import os
-import pathlib
+import requests
+import pandas as pd
+import time
 from dotenv import load_dotenv
+import pathlib
 
-# Load environment variables
+# === Load API Key ===
 env_path = pathlib.Path(__file__).resolve().parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
 API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
-# If API key not found, switch to demo mode
 if not API_KEY:
-    print("⚠️ No API key found. Running in demo mode using pre-collected sample data.")
-    DEMO_FILE = pathlib.Path(__file__).resolve().parent.parent / "data" / "youtube_api_sample.csv"
-
-    if DEMO_FILE.exists():
-        import pandas as pd
-        df = pd.read_csv(DEMO_FILE)
-        print(f"Loaded demo dataset with {len(df)} rows from {DEMO_FILE}")
-        exit(0)
-    else:
-        raise ValueError("No API key or demo file found. Please create .env or include sample CSV.")
+    raise ValueError("YouTube API key not found. Add it to your .env or GitHub Secrets.")
 
 # === Output file ===
-DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
-DATA_DIR.mkdir(exist_ok=True)
-SAVE_PATH = DATA_DIR / "youtube_api_raw.csv"
+os.makedirs("data", exist_ok=True)
+SAVE_PATH = os.path.join("data", "youtube_api_raw.csv")
 
-# === YouTube regions (to reach 3000 total videos) ===
+# === YouTube regions (to reach ~3000 total videos) ===
 REGIONS = ["US", "IN", "GB", "BR", "JP", "KR", "FR", "DE", "CA", "MX", "RU", "IT", "AU", "ES", "ID"]
+MAX_RESULTS_PER_REGION = 300
+
 
 def get_trending_videos(region="US", max_results=300):
-    """Collect trending videos from a single region using YouTube Data API."""
+    """Collect trending videos from a single region."""
     base_url = "https://www.googleapis.com/youtube/v3/videos"
     videos = []
     next_page_token = None
+
+    print(f"Fetching trending videos for region: {region}")
 
     while len(videos) < max_results:
         params = {
@@ -50,7 +46,7 @@ def get_trending_videos(region="US", max_results=300):
         data = response.json()
 
         if response.status_code != 200:
-            print(f" API error {response.status_code} for region {region}: {data}")
+            print(f"API error {response.status_code} for region {region}: {data}")
             break
 
         for item in data.get("items", []):
@@ -80,20 +76,22 @@ def get_trending_videos(region="US", max_results=300):
         if not next_page_token:
             break
 
-        time.sleep(0.25)  # polite delay
+        time.sleep(1)  # polite delay to avoid quota spikes
 
+    print(f"Collected {len(videos)} videos from {region}")
     return videos
 
 
 if __name__ == "__main__":
-    print("🎥 Collecting YouTube trending data via API...\n")
-    all_videos = []
+    print("Collecting YouTube trending data via API...\n")
 
-    for region in tqdm(REGIONS, desc=" Fetching by region"):
-        region_videos = get_trending_videos(region, max_results=300)
+    all_videos = []
+    for region in REGIONS:
+        region_videos = get_trending_videos(region, max_results=MAX_RESULTS_PER_REGION)
         all_videos.extend(region_videos)
-        print(f" {region}: Collected {len(region_videos)} videos (Total: {len(all_videos)})")
+        print(f"Total videos collected so far: {len(all_videos)}\n")
 
     df = pd.DataFrame(all_videos)
-    df.to_csv(SAVE_PATH, index=False, encoding="utf-8-sig")
-    print(f"\n Saved {len(df)} total videos → {SAVE_PATH}")
+    df.to_csv(SAVE_PATH, index=False, encoding="utf-8")
+
+    print(f"API data collection complete. {len(df)} total records saved to {SAVE_PATH}")
