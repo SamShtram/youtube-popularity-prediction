@@ -1,29 +1,39 @@
-# === Load API Key ===
 import os
+import sys
+import time
 import pathlib
+import requests
+import pandas as pd
 from dotenv import load_dotenv
+from tqdm import tqdm
 
-# Look for .env in project root
+# === Handle Windows encoding (fixes charmap emoji crash) ===
+if sys.platform.startswith("win"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# === Load API Key ===
 env_path = pathlib.Path(__file__).resolve().parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
-# Load from .env or GitHub Secrets
+# Load from either .env or GitHub Secret
 API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("api_key")
 
 if not API_KEY:
-    raise ValueError(" YouTube API key not found. Add it to your .env or GitHub Secrets.")
+    raise ValueError("❌ YouTube API key not found. Add it to your .env or GitHub Secrets.")
 else:
-    print(" API key loaded successfully.")
+    print("✅ API key loaded successfully.\n")
 
 # === Output file ===
-SAVE_PATH = "/content/drive/MyDrive/youtube-popularity-prediction/data/youtube_api_3000.csv"
+DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
+DATA_DIR.mkdir(exist_ok=True)
+SAVE_PATH = DATA_DIR / "youtube_api_raw.csv"
 
-# === YouTube regions (to reach 3000 videos total) ===
+# === YouTube regions (to reach 3000 total videos) ===
 REGIONS = ["US", "IN", "GB", "BR", "JP", "KR", "FR", "DE", "CA", "MX", "RU", "IT", "AU", "ES", "ID"]
 
 def get_trending_videos(region="US", max_results=300):
-    """Collect trending videos from a single region."""
+    """Collect trending videos from a single region using YouTube Data API."""
     base_url = "https://www.googleapis.com/youtube/v3/videos"
     videos = []
     next_page_token = None
@@ -42,7 +52,7 @@ def get_trending_videos(region="US", max_results=300):
         data = response.json()
 
         if response.status_code != 200:
-            print(f"API error {response.status_code} for region {region}: {data}")
+            print(f"❌ API error {response.status_code} for region {region}: {data}")
             break
 
         for item in data.get("items", []):
@@ -72,19 +82,20 @@ def get_trending_videos(region="US", max_results=300):
         if not next_page_token:
             break
 
-        time.sleep(1)  # polite delay to avoid quota spikes
+        time.sleep(0.25)  # polite delay
 
     return videos
 
 
 if __name__ == "__main__":
+    print("🎥 Collecting YouTube trending data via API...\n")
     all_videos = []
-    for region in REGIONS:
-        print(f" Collecting for region: {region}")
+
+    for region in tqdm(REGIONS, desc="🌎 Fetching by region"):
         region_videos = get_trending_videos(region, max_results=300)
         all_videos.extend(region_videos)
-        print(f" Collected {len(region_videos)} from {region}. Total so far: {len(all_videos)}")
+        print(f"✅ {region}: Collected {len(region_videos)} videos (Total: {len(all_videos)})")
 
     df = pd.DataFrame(all_videos)
-    df.to_csv(SAVE_PATH, index=False)
-    print(f"\n Saved {len(df)} total videos to {SAVE_PATH}")
+    df.to_csv(SAVE_PATH, index=False, encoding="utf-8-sig")
+    print(f"\n💾 Saved {len(df)} total videos → {SAVE_PATH}")
