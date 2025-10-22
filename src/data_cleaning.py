@@ -21,12 +21,12 @@ def preprocess_and_normalize(df, dataset_name):
     for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
-            df[col].fillna(df[col].median(), inplace=True)
+            df.loc[:, col] = df[col].fillna(df[col].median())
 
     # Text fields
     for col in ["title", "description", "channel"]:
         if col in df.columns:
-            df[col].fillna("Unknown", inplace=True)
+            df.loc[:, col] = df[col].fillna("Unknown")
 
     # Log-transform large numeric features
     for col in ["views", "likes", "comments"]:
