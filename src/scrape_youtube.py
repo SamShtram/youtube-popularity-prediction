@@ -1,5 +1,4 @@
-import requests, re, time, random, pandas as pd
-from bs4 import BeautifulSoup
+import requests, json, re, time, random, pandas as pd
 from tqdm import tqdm
 
 HEADERS = {
@@ -20,87 +19,51 @@ SAVE_PATH = "../data/youtube_scraped_3000.csv"
 MAX_VIDEOS = 3000
 
 
-def extract_video_ids_from_search(html):
-    return list(set(re.findall(r'"videoId":"(.*?)"', html)))
-
-
-def scrape_video_metadata(video_id):
-    url = f"https://www.youtube.com/watch?v={video_id}"
-    resp = requests.get(url, headers=HEADERS)
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    data = {
-        "url": url,
-        "title": None,
-        "channel": None,
-        "views": None,
-        "upload_date": None,
-        "category": None,
-        "duration": None,
-        "tags": None,
-    }
-
+def extract_videos_from_json(html):
+    """Extract JSON data from the ytInitialData object."""
+    match = re.search(r"ytInitialData\"[:=]\s*(\{.*?\})\s*;</script>", html, re.S)
+    if not match:
+        return []
+    data = json.loads(match.group(1))
+    videos = []
     try:
-        data["title"] = soup.find("meta", {"name": "title"})["content"]
-    except:
-        pass
-
-    try:
-        data["channel"] = soup.find("link", {"itemprop": "name"})["content"]
-    except:
-        pass
-
-    try:
-        data["views"] = re.search(r'"viewCount":"(\d+)"', resp.text).group(1)
-    except:
-        pass
-
-    try:
-        data["upload_date"] = soup.find("meta", {"itemprop": "uploadDate"})["content"]
-    except:
-        pass
-
-    try:
-        data["duration"] = soup.find("meta", {"itemprop": "duration"})["content"]
-    except:
-        pass
-
-    try:
-        data["category"] = soup.find("meta", {"itemprop": "genre"})["content"]
-    except:
-        pass
-
-    try:
-        tags = soup.find_all("meta", {"property": "og:video:tag"})
-        data["tags"] = ", ".join([t["content"] for t in tags])
-    except:
-        pass
-
-    return data
+        contents = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
+        for section in contents:
+            for item in section.get("itemSectionRenderer", {}).get("contents", []):
+                video = item.get("videoRenderer")
+                if not video:
+                    continue
+                vid = video.get("videoId")
+                title = video["title"]["runs"][0]["text"]
+                channel = video.get("ownerText", {}).get("runs", [{}])[0].get("text")
+                views = video.get("viewCountText", {}).get("simpleText", "N/A")
+                duration = video.get("lengthText", {}).get("simpleText", "N/A")
+                videos.append({
+                    "url": f"https://www.youtube.com/watch?v={vid}",
+                    "title": title,
+                    "channel": channel,
+                    "views": views,
+                    "duration": duration
+                })
+    except Exception as e:
+        print(" Error parsing JSON:", e)
+    return videos
 
 
 def scrape_youtube_data():
-    all_videos, seen_ids = [], set()
-
-    for keyword in tqdm(KEYWORDS, desc="🔍 Scraping search results"):
+    all_videos = []
+    for keyword in tqdm(KEYWORDS, desc=" Scraping search results"):
         search_url = f"https://www.youtube.com/results?search_query={keyword.replace(' ', '+')}"
-        response = requests.get(search_url, headers=HEADERS)
-        video_ids = extract_video_ids_from_search(response.text)
+        resp = requests.get(search_url, headers=HEADERS)
+        videos = extract_videos_from_json(resp.text)
 
-        for vid in video_ids:
-            if vid not in seen_ids:
-                try:
-                    info = scrape_video_metadata(vid)
-                    all_videos.append(info)
-                    seen_ids.add(vid)
-                except Exception as e:
-                    print(f" Error scraping video {vid}: {e}")
-                time.sleep(random.uniform(1.5, 3.0))
-
+        for video in videos:
+            all_videos.append(video)
             if len(all_videos) >= MAX_VIDEOS:
                 break
         if len(all_videos) >= MAX_VIDEOS:
             break
+        time.sleep(random.uniform(2, 4))
 
     df = pd.DataFrame(all_videos)
     df.drop_duplicates(subset="url", inplace=True)
@@ -110,4 +73,3 @@ def scrape_youtube_data():
 
 if __name__ == "__main__":
     scrape_youtube_data()
-
