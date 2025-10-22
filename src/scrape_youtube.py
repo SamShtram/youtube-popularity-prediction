@@ -94,7 +94,7 @@ def scrape_youtube_data():
                     all_videos.append(info)
                     seen_ids.add(vid)
                 except Exception as e:
-                    print(f"⚠️ Error scraping video {vid}: {e}")
+                    print(f" Error scraping video {vid}: {e}")
                 time.sleep(random.uniform(1.5, 3.0))
 
             if len(all_videos) >= MAX_VIDEOS:
@@ -105,7 +105,7 @@ def scrape_youtube_data():
     df = pd.DataFrame(all_videos)
     df.drop_duplicates(subset="url", inplace=True)
     df.to_csv(SAVE_PATH, index=False)
-    print(f"✅ Saved {len(df)} videos to {SAVE_PATH}")
+    print(f" Saved {len(df)} videos to {SAVE_PATH}")
 
 
 if __name__ == "__main__":
