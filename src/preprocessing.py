@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
+import re
+import unicodedata
 
 # === Load raw CSVs ===
 SCRAPED_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_scraped_raw.csv")
@@ -16,13 +18,32 @@ df_api = pd.read_csv(API_PATH)
 df_scraped.columns = df_scraped.columns.str.strip().str.lower()
 df_api.columns = df_api.columns.str.strip().str.lower()
 
-# === Convert numeric columns ===
-numeric_cols = ["views", "likes", "comments"]
-for name, df in [("Scraped", df_scraped), ("API", df_api)]:
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-    print(f"{name} dataset: standardized numeric columns {', '.join([c for c in numeric_cols if c in df.columns])}")
+# ----------------------------------------------------------
+# 🧹 Helper: clean YouTube-style numbers
+# ----------------------------------------------------------
+def clean_views(value):
+    """Convert '76,924,840 views' → 76924840"""
+    if pd.isna(value):
+        return np.nan
+    s = str(value).lower().strip()
+    s = unicodedata.normalize("NFKD", s)
+    s = s.replace("views", "").replace(",", "").strip()
+    digits = re.findall(r"\d+", s)
+    if digits:
+        return float(digits[0])
+    return np.nan
+
+# ----------------------------------------------------------
+# 🧹 Apply cleaning to scraped dataset
+# ----------------------------------------------------------
+for col in ["views", "likes", "comments"]:
+    if col in df_scraped.columns:
+        df_scraped[col] = df_scraped[col].apply(clean_views).fillna(0)
+
+# For API dataset (already numeric), we can safely convert:
+for col in ["views", "likes", "comments"]:
+    if col in df_api.columns:
+        df_api[col] = pd.to_numeric(df_api[col], errors="coerce").fillna(0)
 
 # === Fill missing non-numeric fields ===
 fill_defaults = {
@@ -33,14 +54,15 @@ fill_defaults = {
     "duration": "PT0S",
     "tags": ""
 }
-
 df_scraped = df_scraped.fillna(fill_defaults)
 df_api = df_api.fillna(fill_defaults)
 
 # === Save cleaned versions ===
 CLEAN_SCRAPED = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_scraped_clean.csv")
 CLEAN_API = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_api_clean.csv")
+
 df_scraped.to_csv(CLEAN_SCRAPED, index=False)
 df_api.to_csv(CLEAN_API, index=False)
 
-print("Preprocessing complete. Cleaned CSVs saved to /data/")
+print("✅ Preprocessing complete. Cleaned CSVs saved to /data/")
+print(df_scraped[["views"]].head())
