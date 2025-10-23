@@ -20,12 +20,16 @@ HEADERS = {
 }
 
 KEYWORDS = [
-    "music video", "podcast", "sports highlights", "tech review",
-    "news update", "tutorial", "education", "vlog", "movie trailer",
-    "finance tips", "travel vlog", "gaming", "reaction video",
-    "motivational speech", "fashion haul", "documentary", "interview",
-    "live performance", "cooking recipe", "product review"
+    "music video", "sports highlights", "movie trailer", "tutorial", "reaction",
+    "short film", "ASMR", "finance tips", "funny moments", "motivational speech",
+    "live concert", "documentary", "science experiment", "gaming review", "travel vlog",
+    "product review", "technology news", "stand up comedy", "interview", "podcast",
+    "animation", "DIY", "makeup tutorial", "car review", "breaking news", "educational video",
+    "health tips", "cooking recipe", "instrumental", "fashion vlog", "movie scene",
+    "behind the scenes", "fan edit", "top 10", "review", "luxury lifestyle", "music mix",
+    "sports news", "celebrity gossip", "how to", "movie explanation"
 ]
+
 
 # Save to /data/youtube_scraped_raw.csv (relative to project root)
 SAVE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_scraped_raw.csv")
