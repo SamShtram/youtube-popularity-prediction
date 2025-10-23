@@ -20,15 +20,84 @@ HEADERS = {
 }
 
 KEYWORDS = [
-    "music video", "sports highlights", "movie trailer", "tutorial", "reaction",
-    "short film", "ASMR", "finance tips", "funny moments", "motivational speech",
-    "live concert", "documentary", "science experiment", "gaming review", "travel vlog",
-    "product review", "technology news", "stand up comedy", "interview", "podcast",
-    "animation", "DIY", "makeup tutorial", "car review", "breaking news", "educational video",
-    "health tips", "cooking recipe", "instrumental", "fashion vlog", "movie scene",
-    "behind the scenes", "fan edit", "top 10", "review", "luxury lifestyle", "music mix",
-    "sports news", "celebrity gossip", "how to", "movie explanation"
+    # Music & Entertainment
+    "music video", "official music video", "song release", "acoustic cover", "pop hits",
+    "rap freestyle", "hip hop mix", "country music", "EDM festival", "live concert",
+    "guitar solo", "drum cover", "piano performance", "instrumental music", "top music charts",
+
+    # Movies & Trailers
+    "movie trailer", "film teaser", "behind the scenes movie", "short film", "animation short",
+    "fan edit", "movie recap", "movie explanation", "movie review", "film analysis",
+
+    # Gaming
+    "gaming highlights", "game walkthrough", "let's play", "speedrun", "esports match",
+    "minecraft survival", "fortnite gameplay", "valorant highlights", "call of duty montage", "roblox tycoon",
+    "gta roleplay", "fifa gameplay", "apex legends clips", "league of legends match", "retro gaming",
+
+    # Technology & Reviews
+    "tech review", "unboxing video", "gadget review", "smartphone comparison", "camera test",
+    "laptop review", "PC build tutorial", "best budget phones", "apple event", "android tips",
+    "AI tools 2025", "coding tutorial", "python tutorial", "web development course", "programming for beginners",
+
+    # Sports
+    "sports highlights", "football match", "basketball highlights", "soccer skills", "baseball game",
+    "tennis rally", "UFC fight", "boxing knockout", "cricket highlights", "F1 race",
+    "golf tips", "olympics recap", "NBA game", "NFL highlights", "hockey goals",
+
+    # News & Politics
+    "breaking news", "daily news update", "political debate", "global economy", "finance news",
+    "business report", "tech news", "science news", "climate change news", "weather forecast",
+
+    # Education & Learning
+    "math tutorial", "science experiment", "physics explained", "chemistry reaction", "biology lecture",
+    "history documentary", "world war history", "language learning", "english grammar tips", "study motivation",
+    "AI lecture", "data science course", "machine learning basics", "college vlog", "study techniques",
+
+    # Lifestyle & Vlogs
+    "daily vlog", "travel vlog", "morning routine", "night routine", "lifestyle vlog",
+    "week in my life", "day in the life", "home organization", "minimalist lifestyle", "college dorm tour",
+    "family vlog", "pet vlog", "couple vlog", "moving vlog", "travel diary",
+
+    # Food & Cooking
+    "cooking recipe", "easy dinner ideas", "street food tour", "baking tutorial", "meal prep ideas",
+    "healthy breakfast", "vegan recipe", "dessert recipe", "grilling tips", "restaurant review",
+    "food challenge", "cake decorating", "instant pot recipes", "homemade pizza", "coffee brewing",
+
+    # Fashion & Beauty
+    "makeup tutorial", "fashion haul", "outfit ideas", "skincare routine", "hair styling tips",
+    "nail art tutorial", "wardrobe organization", "perfume review", "clothing try on", "summer fashion",
+    "winter outfits", "beauty hacks", "get ready with me", "celebrity fashion", "makeup review",
+
+    # Finance & Business
+    "investing for beginners", "stock market analysis", "cryptocurrency news", "passive income ideas", "real estate investing",
+    "business motivation", "entrepreneurship tips", "startup pitch", "finance tips", "budgeting hacks",
+    "saving money tips", "credit score advice", "debt payoff strategy", "financial freedom", "side hustle ideas",
+
+    # Motivation & Self-Improvement
+    "motivational speech", "self improvement tips", "productivity hacks", "morning motivation", "goal setting",
+    "discipline habits", "mental health awareness", "how to stay focused", "study motivation", "career advice",
+    "success stories", "confidence building", "public speaking tips", "personal growth", "habit tracking",
+
+    # Comedy & Reactions
+    "funny moments", "comedy skit", "stand up comedy", "funny fails", "reaction video",
+    "prank video", "meme compilation", "tiktok compilation", "try not to laugh", "parody video",
+    "best vines", "funny short", "spoof video", "viral trends", "humor sketches",
+
+    # DIY & Crafts
+    "DIY home decor", "craft tutorial", "room makeover", "art tutorial", "painting tutorial",
+    "drawing for beginners", "woodworking project", "resin art", "upcycling ideas", "knitting tutorial",
+
+    # Health & Fitness
+    "home workout", "gym motivation", "fitness routine", "yoga session", "pilates class",
+    "weight loss tips", "nutrition advice", "healthy lifestyle", "mental wellness", "stretching routine",
+    "bodybuilding motivation", "running tips", "cycling workout", "posture correction", "healthy habits",
+
+    # Miscellaneous & Trending
+    "reaction to viral video", "AI trends", "luxury lifestyle", "celebrity interview", "car review",
+    "travel destination", "ASMR sounds", "space documentary", "nature sounds", "wildlife documentary",
+    "top 10 list", "life hacks", "satisfying video", "optical illusion", "weird facts"
 ]
+
 
 
 # Save to /data/youtube_scraped_raw.csv (relative to project root)
