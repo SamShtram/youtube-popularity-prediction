@@ -19,7 +19,7 @@ df_scraped.columns = df_scraped.columns.str.strip().str.lower()
 df_api.columns = df_api.columns.str.strip().str.lower()
 
 # ----------------------------------------------------------
-# 🧹 Helper: clean YouTube-style numbers
+#  Helper: clean YouTube-style numbers
 # ----------------------------------------------------------
 def clean_views(value):
     """Convert '76,924,840 views' → 76924840"""
@@ -34,7 +34,7 @@ def clean_views(value):
     return np.nan
 
 # ----------------------------------------------------------
-# 🧹 Apply cleaning to scraped dataset
+#  Apply cleaning to scraped dataset
 # ----------------------------------------------------------
 for col in ["views", "likes", "comments"]:
     if col in df_scraped.columns:
