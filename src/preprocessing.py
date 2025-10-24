@@ -64,5 +64,5 @@ CLEAN_API = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_api_c
 df_scraped.to_csv(CLEAN_SCRAPED, index=False)
 df_api.to_csv(CLEAN_API, index=False)
 
-print("✅ Preprocessing complete. Cleaned CSVs saved to /data/")
+print(" Preprocessing complete. Cleaned CSVs saved to /data/")
 print(df_scraped[["views"]].head())
