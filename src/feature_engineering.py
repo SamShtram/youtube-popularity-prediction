@@ -12,7 +12,7 @@ df_scraped = pd.read_csv(SCRAPED_PATH)
 df_api = pd.read_csv(API_PATH)
 
 # -------------------------------------------------------
-# 🧹 Utility functions
+#  Utility functions
 # -------------------------------------------------------
 def convert_duration(duration_str):
     """Convert PT#M#S or MM:SS to float minutes."""
@@ -43,7 +43,7 @@ def keyword_density(text):
     return len(re.findall(r"\b[a-zA-Z]{3,}\b", text))
 
 # -------------------------------------------------------
-# ⚙️ Feature functions
+#  Feature functions
 # -------------------------------------------------------
 def basic_text_features(df):
     df["title_length"] = df["title"].astype(str).apply(len)
@@ -81,7 +81,7 @@ def log_and_ratio_features(df):
     return df
 
 # -------------------------------------------------------
-# 🚀 Apply to both datasets
+#  Apply to both datasets
 # -------------------------------------------------------
 for name, df in [("Scraped", df_scraped), ("API", df_api)]:
     print(f"Processing {name} dataset...")
@@ -94,7 +94,7 @@ for name, df in [("Scraped", df_scraped), ("API", df_api)]:
     if "tags" in df.columns:
         df["tag_count"] = df["tags"].astype(str).apply(lambda x: len(x.split("|")) if "|" in x else len(x.split(",")))
 
-print("✅ Feature engineering complete.")
+print(" Feature engineering complete.")
 
 # === Save engineered datasets ===
 FE_SCRAPED = os.path.join(os.path.dirname(__file__), "..", "data", "youtube_scraped_features.csv")
