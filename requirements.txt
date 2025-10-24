@@ -1,32 +1,26 @@
-# Core data analysis libraries
+# ===== YouTube Popularity Prediction Requirements =====
+# Setup instructions:
+#   1. python -m venv venv
+#   2. .\venv\Scripts\Activate.ps1
+#   3. chcp 65001
+#   4. setx PYTHONUTF8 1
+#   5. pip install -r requirements.txt
+#   6. Create .env with YOUTUBE_API_KEY=your_api_key_here
+
 pandas==2.2.2
 numpy==1.26.4
 scikit-learn==1.5.1
-
-# Machine learning models
 xgboost==2.1.1
 lightgbm==4.3.0
-
-# Visualization (if used in notebooks)
 matplotlib==3.9.1
 seaborn==0.13.2
-
-# Progress bar + environment variable support
 tqdm==4.66.4
 python-dotenv==1.0.1
-
-# API calls / web requests
 requests==2.32.3
 google-api-python-client==2.137.0
-
-# Jupyter (for notebooks)
 jupyterlab==4.2.5
 notebook==7.2.2
 ipykernel==6.29.5
-
-# Encoding + system handling
 chardet==5.2.0
-
-# Optional: if you use colab or json manipulation
 beautifulsoup4==4.12.3
 lxml==5.2.1
