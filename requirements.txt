@@ -1,9 +1,9 @@
 pandas
-tqdm
 numpy
 scikit-learn
+xgboost
 matplotlib
-seaborn
-requests
 beautifulsoup4
-google-api-python-client
+requests
+python-dotenv
+certifi
