@@ -49,7 +49,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 print(f"Clean target range: min={y_api_clean.min():.0f}, max={y_api_clean.max():.0f}")
-print(f"Train/Test split → {X_train.shape}, {X_test.shape}")
+print(f"Train/Test split  {X_train.shape}, {X_test.shape}")
 
 # ---------------------------------------------------------------
 # 4. Define models
