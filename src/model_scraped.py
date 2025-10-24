@@ -74,7 +74,7 @@ def evaluate(model, name):
     y_true = np.expm1(y_test)
     rmse = np.sqrt(mean_squared_error(y_true, preds))
     r2 = r2_score(y_true, preds)
-    print(f" {name} → RMSE: {rmse:,.0f}, R²: {r2:.3f}")
+    print(f" {name}  RMSE: {rmse:,.0f}, R²: {r2:.3f}")
     return rmse, r2
 
 print("\n Training tuned models on enhanced scraped data...\n")
