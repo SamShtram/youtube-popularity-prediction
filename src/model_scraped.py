@@ -7,14 +7,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
 
 # -------------------------------------------------------
-# 1️ Load enhanced dataset
+#  Load enhanced dataset
 # -------------------------------------------------------
 path = "data/youtube_scraped_features.csv"
 df = pd.read_csv(path)
 print(f" Loaded feature dataset: {df.shape[0]} rows, {df.shape[1]} columns")
 
 # -------------------------------------------------------
-# 2️ Clean + select useful features
+#  Clean + select useful features
 # -------------------------------------------------------
 df = df.dropna(subset=["views"])
 df = df[df["views"] > 0]
@@ -33,7 +33,7 @@ y_log = np.log1p(y)
 print(f"Final numeric features: {X.shape[1]} | Samples: {len(y)}")
 
 # -------------------------------------------------------
-# 3️ Train/Test split + scale
+#  Train/Test split + scale
 # -------------------------------------------------------
 X_train, X_test, y_train, y_test = train_test_split(X, y_log, test_size=0.2, random_state=42)
 scaler = StandardScaler()
@@ -41,7 +41,7 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 # -------------------------------------------------------
-# 4️ Define tuned models
+#  Define tuned models
 # -------------------------------------------------------
 rf = RandomForestRegressor(
     n_estimators=400,
@@ -65,7 +65,7 @@ xgb = XGBRegressor(
 )
 
 # -------------------------------------------------------
-# 5️ Train & evaluate
+#  Train & evaluate
 # -------------------------------------------------------
 def evaluate(model, name):
     model.fit(X_train, y_train)
